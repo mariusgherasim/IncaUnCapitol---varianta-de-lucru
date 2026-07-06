@@ -55,8 +55,7 @@ function renderMonthlyBook() {
                 <p>
 
                 <em>
-                    ${monthlyBook.description}
-
+                    ${monthlyBook.description.replace(/\n\n/g, "<br><br>")}
                 </em>
 
                 </p>
@@ -67,7 +66,11 @@ function renderMonthlyBook() {
                     href="${monthlyBook.affiliate}"
                     target="_blank"
                     class="cta-btn"
-                >
+
+                    onclick="trackMonthlyBook(
+                    '${monthlyBook.title}',
+                    '${monthlyBook.author}'
+                    )">
 
                     Cumpără acum
 
@@ -187,23 +190,33 @@ function createBookCard(book) {
 
                 <div class="price-box">
 
-                    <span class="old-price">
-
-                        ${book.oldPrice}
-
-                    </span>
+                    ${
+                        book.oldPrice
+                        ?
+                        `
+                        <span class="old-price">
+                            ${book.oldPrice}
+                        </span>
+                        `
+                        :
+                        ""
+                    }
 
                     <span class="new-price">
-
                         ${book.price}
-
                     </span>
 
-                    <span class="discount">
-
-                        ${book.discount}
-
-                    </span>
+                    ${
+                        book.discount
+                        ?
+                        `
+                        <span class="discount">
+                            ${book.discount}
+                        </span>
+                        `
+                        :
+                        ""
+                    }
 
                 </div>
 
@@ -244,9 +257,10 @@ function createBookCard(book) {
                     href="${book.affiliate}"
                     target="_blank"
                     class="buy-btn"
+                    onclick="trackBookClick('${book.title}','${book.author}','${book.source}')"
                 >
 
-                    Cumpără acum
+                    Cumpără
 
                 </a>
 
@@ -494,6 +508,14 @@ document
 
 newsletterForm.reset();
 
+trackEvent("newsletter_signup",{
+
+    source:"newsletter",
+
+    site:"carti"
+
+});
+
 }
 
 }
@@ -656,3 +678,50 @@ String(seconds)
 });
 
 }
+
+/* ========================================
+   GOOGLE ANALYTICS
+======================================== */
+
+function trackEvent(eventName, parameters = {}) {
+
+    if (typeof gtag === "function") {
+
+        gtag("event", eventName, parameters);
+
+        console.log("GA4:", eventName, parameters);
+
+    }
+
+}
+
+
+window.trackBookClick = function(title, author, source){
+
+    trackEvent("click_cumpara",{
+        title: title,
+        author: author,
+        source: source
+    });
+
+    trackEvent("affiliate_click",{
+        title: title,
+        author: author,
+        source: source
+    });
+
+    console.log("Click înregistrat:", title);
+
+};
+
+window.trackMonthlyBook = function(title, author){
+
+    trackEvent("featured_book_click",{
+
+        book_title:title,
+
+        author:author
+
+    });
+
+};
